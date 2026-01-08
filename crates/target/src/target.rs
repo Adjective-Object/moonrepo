@@ -12,7 +12,7 @@ use tracing::instrument;
 // The @ is to support npm package scopes!
 pub static TARGET_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(&format!(
-        r"^(?P<scope>(?:[A-Za-z@#_]{{1}}[{ID_CHARS}{ID_SYMBOLS}]*|\^|~))?:(?P<task>[{ID_CHARS}{ID_SYMBOLS}]+)$"
+        r"^(?P<scope>(?:[0-9A-Za-z@#_]{{1}}[{ID_CHARS}{ID_SYMBOLS}]*|\^|~))?:(?P<task>[{ID_CHARS}{ID_SYMBOLS}]+)$"
     ))
     .unwrap()
 });
@@ -33,13 +33,16 @@ impl Target {
         let scope_id = scope_id.as_ref();
         let task_id = task_id.as_ref();
 
-        let handle_error = |_| TargetError::InvalidFormat(format!("{scope_id}:{task_id}"));
-        let scope = TargetScope::Project(Id::new(scope_id).map_err(handle_error)?);
+        let scope =
+            TargetScope::Project(Id::new(scope_id).map_err(|_| {
+                TargetError::InvalidFormat(format!("(scope) {scope_id}:{task_id}"))
+            })?);
 
         Ok(Target {
             id: CompactString::new(Target::format(&scope, task_id)),
             scope,
-            task_id: Id::new(task_id).map_err(handle_error)?,
+            task_id: Id::new(task_id)
+                .map_err(|_| TargetError::InvalidFormat(format!("(task) {scope_id}:{task_id}")))?,
         })
     }
 
@@ -53,7 +56,7 @@ impl Target {
             id: CompactString::new(Target::format(TargetScope::OwnSelf, task_id)),
             scope: TargetScope::OwnSelf,
             task_id: Id::new(task_id)
-                .map_err(|_| TargetError::InvalidFormat(format!("~:{task_id}")))?,
+                .map_err(|_| TargetError::InvalidFormat(format!("(self) ~:{task_id}")))?,
         })
     }
 
@@ -76,7 +79,7 @@ impl Target {
         }
 
         let Some(matches) = TARGET_PATTERN.captures(target_id) else {
-            return Err(TargetError::InvalidFormat(target_id.to_owned()).into());
+            return Err(TargetError::InvalidFormat(format!("(pattern) {target_id}")).into());
         };
 
         let scope = match matches.name("scope") {
@@ -96,7 +99,7 @@ impl Target {
         };
 
         let task_id = Id::new(matches.name("task").unwrap().as_str())
-            .map_err(|_| TargetError::InvalidFormat(target_id.to_owned()))?;
+            .map_err(|_| TargetError::InvalidFormat(format!("(parsed:task) {target_id}")))?;
 
         Ok(Target {
             id: CompactString::new(target_id),
