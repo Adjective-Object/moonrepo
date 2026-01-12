@@ -5,11 +5,13 @@ use moon_config::{
 };
 use moon_project::Project;
 use moon_task::{Target, TargetScope, Task, TaskOptionRunInCI, TaskOptions};
+use rustc_hash::FxHashSet;
 use std::mem;
 use tracing::trace;
 
 pub trait TasksQuerent {
     fn query_projects_by_tag(&self, tag: &str) -> miette::Result<Vec<&Id>>;
+    fn query_dependent_projects_by_id(&self, project_id: &Id) -> miette::Result<Vec<&Id>>;
     fn query_tasks(
         &self,
         project_ids: Vec<&Id>,
@@ -30,47 +32,80 @@ impl TaskDepsBuilder<'_> {
         let project = self.project.take().unwrap();
 
         for dep_config in mem::take(&mut self.task.deps) {
-            let (project_ids, skip_if_missing, link_implicit_project_deps) =
-                match &dep_config.target.scope {
-                    // :task
-                    TargetScope::All => {
-                        return Err(TasksBuilderError::UnsupportedTargetScopeInDeps {
-                            dep: dep_config.target.to_owned(),
-                            task: self.task.target.to_owned(),
+            let (project_ids, skip_if_missing, link_implicit_project_deps) = match &dep_config
+                .target
+                .scope
+            {
+                // :task
+                TargetScope::All => {
+                    return Err(TasksBuilderError::UnsupportedTargetScopeInDeps {
+                        dep: dep_config.target.to_owned(),
+                        task: self.task.target.to_owned(),
+                    }
+                    .into());
+                }
+                // ^:task
+                TargetScope::Deps => (
+                    project
+                        .dependencies
+                        .iter()
+                        .map(|dep| &dep.id)
+                        .collect::<Vec<_>>(),
+                    dep_config.optional.unwrap_or(true),
+                    false,
+                ),
+                // ^^:task
+                TargetScope::TransitiveDeps => {
+                    let mut transitive_dep_ids: Vec<&Id> = vec![];
+                    let mut visited_set = FxHashSet::default();
+                    visited_set.insert(&project.id);
+                    let mut frontier: Vec<&Id> = Vec::with_capacity(project.dependencies.len() * 2);
+                    while let Some(project_id) = frontier.pop() {
+                        if !visited_set.insert(project_id) {
+                            continue;
                         }
-                        .into());
+                        transitive_dep_ids.push(project_id);
+                        let Some(mut dep_ids) = self
+                            .querent
+                            .query_dependent_projects_by_id(&project_id)
+                            .ok()
+                        else {
+                            miette::bail!(
+                                "Cannot resolve dependency `{}` because transitive dependency with id={} could not be queried.",
+                                dep_config.target.as_str(),
+                                project_id,
+                            )
+                        };
+                        frontier.append(&mut dep_ids);
                     }
-                    // ^:task
-                    TargetScope::Deps => (
-                        project
-                            .dependencies
-                            .iter()
-                            .map(|dep| &dep.id)
-                            .collect::<Vec<_>>(),
+
+                    (
+                        transitive_dep_ids,
                         dep_config.optional.unwrap_or(true),
                         false,
-                    ),
-                    // ~:task
-                    TargetScope::OwnSelf => (
-                        vec![&project.id],
-                        dep_config.optional.unwrap_or(false),
-                        false,
-                    ),
-                    // id:task
-                    TargetScope::Project(project_id) => {
-                        (vec![project_id], dep_config.optional.unwrap_or(false), true)
-                    }
-                    // #tag:task
-                    TargetScope::Tag(tag) => (
-                        self.querent
-                            .query_projects_by_tag(tag)?
-                            .into_iter()
-                            .filter(|id| *id != &project.id)
-                            .collect(),
-                        dep_config.optional.unwrap_or(true),
-                        true,
-                    ),
-                };
+                    )
+                }
+                // ~:task
+                TargetScope::OwnSelf => (
+                    vec![&project.id],
+                    dep_config.optional.unwrap_or(false),
+                    false,
+                ),
+                // id:task
+                TargetScope::Project(project_id) => {
+                    (vec![project_id], dep_config.optional.unwrap_or(false), true)
+                }
+                // #tag:task
+                TargetScope::Tag(tag) => (
+                    self.querent
+                        .query_projects_by_tag(tag)?
+                        .into_iter()
+                        .filter(|id| *id != &project.id)
+                        .collect(),
+                    dep_config.optional.unwrap_or(true),
+                    true,
+                ),
+            };
 
             let results = self
                 .querent

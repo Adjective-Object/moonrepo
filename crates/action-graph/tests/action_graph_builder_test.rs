@@ -1697,6 +1697,24 @@ mod action_graph_builder {
         }
 
         #[tokio::test(flavor = "multi_thread")]
+        #[should_panic(expected = "Dependencies scope (^^:) is not supported in run contexts.")]
+        async fn errors_on_transitive_parent_scope() {
+            let sandbox = create_sandbox("tasks");
+            let mut container = ActionGraphContainer::new(sandbox.path());
+            let mut builder = container
+                .create_builder(container.create_workspace_graph().await)
+                .await;
+
+            builder
+                .run_task_by_target(
+                    Target::parse("^^:build").unwrap(),
+                    &RunRequirements::default(),
+                )
+                .await
+                .unwrap();
+        }
+
+        #[tokio::test(flavor = "multi_thread")]
         #[should_panic(expected = "Self scope (~:) is not supported in run contexts.")]
         async fn errors_on_self_scope() {
             let sandbox = create_sandbox("tasks");

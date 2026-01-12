@@ -14,6 +14,10 @@ pub enum TargetError {
     #[error("Dependencies scope (^:) is not supported in run contexts.")]
     NoDepsInRunContext,
 
+    #[diagnostic(code(target::run_context::no_transitive_deps_scope))]
+    #[error("Dependencies scope (^^:) is not supported in run contexts.")]
+    NoTransitiveDepsInRunContext,
+
     #[diagnostic(code(target::run_context::no_self_scope))]
     #[error("Self scope (~:) is not supported in run contexts.")]
     NoSelfInRunContext,

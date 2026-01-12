@@ -1,5 +1,6 @@
 use crate::build_data::{ProjectBuildData, TaskBuildData};
 use moon_common::Id;
+use moon_config::{ProjectDependencyConfig, ProjectDependsOn};
 use moon_task::{Target, TaskOptions};
 use moon_task_builder::TasksQuerent;
 use rustc_hash::FxHashMap;
@@ -45,5 +46,30 @@ impl TasksQuerent for WorkspaceBuilderTasksQuerent<'_> {
             .collect::<Vec<_>>();
 
         Ok(results)
+    }
+
+    fn query_dependent_projects_by_id(&self, project_id: &Id) -> miette::Result<Vec<&Id>> {
+        let mut dependents = vec![];
+
+        for (dep_project_id, dep_project_data) in self.project_data.iter() {
+            let contains_dep = dep_project_data
+                .config
+                .as_ref()
+                .map(|config| {
+                    config.depends_on.iter().any(|dep| match dep {
+                        ProjectDependsOn::String(id) => id == project_id,
+                        ProjectDependsOn::Object(ProjectDependencyConfig { id, .. }) => {
+                            id == project_id
+                        }
+                    })
+                })
+                .unwrap_or_default();
+
+            if contains_dep {
+                dependents.push(dep_project_id);
+            }
+        }
+
+        Ok(dependents)
     }
 }

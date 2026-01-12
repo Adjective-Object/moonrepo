@@ -602,6 +602,10 @@ impl<'query> ActionGraphBuilder<'query> {
             TargetScope::Deps => {
                 return Err(TargetError::NoDepsInRunContext.into());
             }
+            // ^^:task
+            TargetScope::TransitiveDeps => {
+                return Err(TargetError::NoTransitiveDepsInRunContext.into());
+            }
             // project:task
             TargetScope::Project(project_id) => {
                 let task = self

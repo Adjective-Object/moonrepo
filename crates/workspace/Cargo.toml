@@ -36,6 +36,7 @@ serde = { workspace = true }
 starbase_utils = { workspace = true, features = ["glob", "json"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+config = "0.15.19"
 
 [lints]
 workspace = true

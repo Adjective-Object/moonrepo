@@ -12,7 +12,7 @@ use tracing::instrument;
 // The @ is to support npm package scopes!
 pub static TARGET_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(&format!(
-        r"^(?P<scope>(?:[0-9A-Za-z@#_]{{1}}[{ID_CHARS}{ID_SYMBOLS}]*|\^|~))?:(?P<task>[{ID_CHARS}{ID_SYMBOLS}]+)$"
+        r"^(?P<scope>(?:[0-9A-Za-z@#_]{{1}}[{ID_CHARS}{ID_SYMBOLS}]*|\^|\^\^|~))?:(?P<task>[{ID_CHARS}{ID_SYMBOLS}]+)$"
     ))
     .unwrap()
 });
@@ -86,6 +86,7 @@ impl Target {
             Some(value) => match value.as_str() {
                 "" => TargetScope::All,
                 "^" => TargetScope::Deps,
+                "^^"=> TargetScope::TransitiveDeps,
                 "~" => TargetScope::OwnSelf,
                 id => {
                     if let Some(tag) = id.strip_prefix('#') {
