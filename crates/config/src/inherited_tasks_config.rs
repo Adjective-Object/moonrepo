@@ -2,13 +2,14 @@ use crate::config_struct;
 use crate::patterns::{merge_iter, merge_tasks_partials};
 use crate::project::LanguageType;
 use crate::project_config::{LayerType, StackType};
-use crate::shapes::{FilePath, Input, OneOrMany};
+use crate::shapes::{GlobOrPath, Input, OneOrMany};
 use crate::task_config::{TaskConfig, TaskDependency, validate_deps};
 use crate::task_options_config::{PartialTaskOptionsConfig, TaskOptionsConfig};
 use moon_common::{Id, cacheable};
 use rustc_hash::FxHashMap;
 use schematic::schema::indexmap::IndexMap;
 use schematic::{Config, merge, validate};
+use starbase_utils::glob;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -140,7 +141,7 @@ config_struct!(
         /// Condition that matches against literal files within a project.
         /// If multiple values are provided, at least 1 file needs to exist.
         #[setting(alias = "file")]
-        pub files: Option<OneOrMany<FilePath>>,
+        pub files: Option<OneOrMany<GlobOrPath>>,
 
         /// Condition that matches against a project's `language`.
         /// If multiple values are provided, it matches using an OR operator.
@@ -257,14 +258,40 @@ impl InheritedByConfig {
             return false;
         }
 
-        if let Some(files) = &self.files
-            && let Some(value) = &input.root
-            && !files.to_list().iter().any(|file| value.join(file).exists())
+        // Check raw file paths and globset separately
+        if let Some(files_patterns) = &self.files
+            && let Some(root) = &input.root
+            && !Self::files_match(files_patterns, root)
         {
             return false;
         }
 
         true
+    }
+
+    fn files_match(patterns: &OneOrMany<GlobOrPath>, root: &Path) -> bool {
+        // Check raw file paths
+        let patterns_list = patterns.to_list();
+        for file_path in patterns_list.iter() {
+            if let GlobOrPath::File(file) = file_path {
+                let full_path = root.join(file);
+                if full_path.exists() {
+                    return true;
+                }
+            }
+        }
+
+        // Check glob patterns
+        let globs_iter = patterns_list.iter().filter_map(|p| match p {
+            GlobOrPath::Glob(glob) => Some(glob),
+            _ => None,
+        });
+
+        // HACK: ideally we update starbase_utils to support glob::exists with early exit
+        let files = glob::walk_files(root, globs_iter)
+            .expect("Failed to read files when matching inherited tasks 'files' condition");
+
+        !files.is_empty()
     }
 }
 

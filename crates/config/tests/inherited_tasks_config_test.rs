@@ -512,7 +512,7 @@ inheritedBy:
 
             assert_eq!(
                 config.inherited_by.unwrap().files.unwrap(),
-                OneOrMany::One(FilePath("config.js".into())),
+                OneOrMany::One(GlobOrPath::File(FilePath("config.js".into()))),
             );
         }
 
@@ -529,11 +529,70 @@ inheritedBy:
 
             assert_eq!(
                 config.inherited_by.unwrap().files.unwrap(),
-                OneOrMany::Many(vec![FilePath("a.json".into()), FilePath("b.json".into())]),
+                OneOrMany::Many(vec![
+                    GlobOrPath::File(FilePath("a.json".into())),
+                    GlobOrPath::File(FilePath("b.json".into()))
+                ]),
             );
         }
 
-        #[should_panic]
+        #[test]
+        fn one_glob() {
+            let config = test_load_config(
+                FILENAME,
+                r"
+inheritedBy:
+  file: config*.js
+",
+                |path| load_config_from_file(&path.join(FILENAME)),
+            );
+
+            assert_eq!(
+                config.inherited_by.unwrap().files.unwrap(),
+                OneOrMany::One(GlobOrPath::Glob(GlobPath("config*.js".into()))),
+            );
+        }
+
+        #[test]
+        fn many_globs() {
+            let config = test_load_config(
+                FILENAME,
+                r"
+inheritedBy:
+  files: ['a*.json', 'b*.json']
+",
+                |path| load_config_from_file(&path.join(FILENAME)),
+            );
+
+            assert_eq!(
+                config.inherited_by.unwrap().files.unwrap(),
+                OneOrMany::Many(vec![
+                    GlobOrPath::Glob(GlobPath("a*.json".into())),
+                    GlobOrPath::Glob(GlobPath("b*.json".into()))
+                ]),
+            );
+        }
+
+        #[test]
+        fn mixed_globs_files() {
+            let config = test_load_config(
+                FILENAME,
+                r"
+inheritedBy:
+  files: ['**/*.json', 'b.json']
+",
+                |path| load_config_from_file(&path.join(FILENAME)),
+            );
+
+            assert_eq!(
+                config.inherited_by.unwrap().files.unwrap(),
+                OneOrMany::Many(vec![
+                    GlobOrPath::Glob(GlobPath("**/*.json".into())),
+                    GlobOrPath::File(FilePath("b.json".into()))
+                ]),
+            );
+        }
+
         #[test]
         fn errors_for_glob() {
             test_load_config(

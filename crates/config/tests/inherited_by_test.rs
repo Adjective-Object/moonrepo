@@ -1,7 +1,7 @@
 use moon_common::Id;
 use moon_config::{
-    FilePath, InheritFor, InheritedByConfig, InheritedClauseConfig, InheritedConditionConfig,
-    LanguageType, LayerType, OneOrMany, PortablePath, StackType,
+    InheritFor, InheritedByConfig, InheritedClauseConfig, InheritedConditionConfig, LanguageType,
+    LayerType, OneOrMany, StackType,
 };
 use starbase_sandbox::create_empty_sandbox;
 
@@ -265,13 +265,33 @@ mod inherited_by {
         let sandbox = create_empty_sandbox();
 
         let config = InheritedByConfig {
-            files: Some(OneOrMany::One(FilePath::parse("file.txt").unwrap())),
+            files: Some(OneOrMany::One(
+                moon_config::GlobOrPath::parse("file.txt").unwrap(),
+            )),
             ..Default::default()
         };
 
         assert!(!config.matches(&InheritFor::default().root(sandbox.path())));
 
         sandbox.create_file("file.txt", "");
+
+        assert!(config.matches(&InheritFor::default().root(sandbox.path())));
+    }
+
+    #[test]
+    fn matches_globs() {
+        let sandbox = create_empty_sandbox();
+
+        let config = InheritedByConfig {
+            files: Some(OneOrMany::One(
+                moon_config::GlobOrPath::parse("src/*.txt").unwrap(),
+            )),
+            ..Default::default()
+        };
+
+        assert!(!config.matches(&InheritFor::default().root(sandbox.path())));
+
+        sandbox.create_file("src/file.txt", "");
 
         assert!(config.matches(&InheritFor::default().root(sandbox.path())));
     }

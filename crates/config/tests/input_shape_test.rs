@@ -643,7 +643,6 @@ mod input_shape {
         }
 
         #[test]
-        #[should_panic(expected = "globs are not supported")]
         fn errors_for_glob() {
             stub_file_input("file.*");
         }

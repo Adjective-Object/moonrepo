@@ -3917,6 +3917,7 @@ dependencies = [
  "serde_path_to_error",
  "serial_test",
  "starbase_sandbox",
+ "starbase_utils",
  "tracing",
  "version_spec",
  "warpgate_api",

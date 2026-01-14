@@ -1,8 +1,10 @@
+mod glob_or_path;
 mod input;
 mod output;
 mod poly;
 mod portable_path;
 
+pub use glob_or_path::*;
 pub use input::*;
 pub use output::*;
 pub use poly::*;
