@@ -6,10 +6,7 @@ use std::path::Path;
 use tracing::trace;
 
 pub fn create_native_tls_config(client: ClientBuilder) -> miette::Result<ClientBuilder> {
-    Ok(client
-        .use_rustls_tls()
-        .tls_built_in_native_certs(true)
-        .https_only(true))
+    Ok(client.use_rustls_tls().https_only(true))
 }
 
 pub fn create_tls_config(
@@ -26,8 +23,7 @@ pub fn create_tls_config(
 
     let client = client
         .use_rustls_tls()
-        .tls_built_in_native_certs(false)
-        .add_root_certificate(Certificate::from_pem(&fs::read_file_bytes(cert)?).into_diagnostic()?)
+        .tls_certs_only([Certificate::from_pem(&fs::read_file_bytes(cert)?).into_diagnostic()?])
         .https_only(true);
 
     Ok(client)
@@ -56,10 +52,7 @@ pub fn create_mtls_config(
 
     let client = client
         .use_rustls_tls()
-        .tls_built_in_native_certs(false)
-        .add_root_certificate(
-            Certificate::from_pem(&fs::read_file_bytes(ca_cert)?).into_diagnostic()?,
-        )
+        .tls_certs_only([Certificate::from_pem(&fs::read_file_bytes(ca_cert)?).into_diagnostic()?])
         .identity(Identity::from_pem(&identity_buf).into_diagnostic()?)
         .https_only(true);
 

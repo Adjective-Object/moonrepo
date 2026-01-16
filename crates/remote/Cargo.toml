@@ -16,7 +16,7 @@ async-trait = { workspace = true }
 bazel-remote-apis = { version = "0.21.0", features = ["serde"] }
 chrono = { workspace = true }
 miette = { workspace = true }
-reqwest = { workspace = true, features = ["json", "rustls-tls"] }
+reqwest = { workspace = true, features = ["json", "rustls"] }
 rustc-hash = { workspace = true }
 scc = { workspace = true }
 serde = { workspace = true }
