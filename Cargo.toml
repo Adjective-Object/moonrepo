@@ -44,7 +44,7 @@ reqwest = { version = "0.12.28", default-features = false, features = [
 ] }
 rustc-hash = "2.1.1"
 scc = "3.4.8"
-schematic = { version = "0.19.1", default-features = false, features = [
+schematic = { git = "https://github.com/Adjective-Object/schematic.git", rev = "e4beb084ad513f104d700236f8d29a9a549d0f1e", default-features = false, features = [
     "schema",
 ] }
 serial_test = "3.2.0"

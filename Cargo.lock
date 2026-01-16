@@ -2535,7 +2535,7 @@ dependencies = [
  "http",
  "http-cache",
  "http-cache-semantics",
- "reqwest",
+ "reqwest 0.12.28",
  "reqwest-middleware",
  "serde",
  "url",
@@ -3669,7 +3669,7 @@ dependencies = [
  "moon_env_var",
  "moon_time",
  "proto_core",
- "reqwest",
+ "reqwest 0.12.28",
  "semver",
  "serde",
  "starbase_utils",
@@ -3732,9 +3732,9 @@ dependencies = [
  "petgraph 0.8.3",
  "proto_core",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
  "semver",
  "serde",
  "serial_test",
@@ -3888,7 +3888,7 @@ dependencies = [
  "regex",
  "relative-path",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
  "serde",
  "starbase_id",
  "starbase_styles",
@@ -3908,9 +3908,9 @@ dependencies = [
  "moon_target",
  "proto_core",
  "regex",
- "rpkl",
+ "rpkl 0.6.1",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
  "semver",
  "serde",
  "serde_json",
@@ -3930,7 +3930,7 @@ dependencies = [
  "miette 7.6.0",
  "moon_config",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
 ]
 
 [[package]]
@@ -4079,7 +4079,7 @@ dependencies = [
  "moon_common",
  "moon_time",
  "notify-rust",
- "reqwest",
+ "reqwest 0.12.28",
  "serde",
  "starbase_utils",
  "system_env",
@@ -4099,7 +4099,7 @@ dependencies = [
  "moon_project",
  "moon_task",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
  "serde",
  "warpgate_pdk",
 ]
@@ -4115,7 +4115,7 @@ dependencies = [
  "moon_task",
  "proto_pdk_api",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.2",
  "serde",
  "serde_json",
  "warpgate_api",
@@ -4315,7 +4315,7 @@ dependencies = [
  "moon_feature_flags",
  "moon_process",
  "moon_task",
- "reqwest",
+ "reqwest 0.12.28",
  "rustc-hash",
  "scc 3.4.8",
  "serde",
@@ -4339,7 +4339,7 @@ dependencies = [
  "miette 7.6.0",
  "moon_common",
  "regex",
- "schematic",
+ "schematic 0.19.2",
  "serde",
  "thiserror 2.0.17",
  "tracing",
@@ -4881,7 +4881,7 @@ dependencies = [
  "oci-spec",
  "olpc-cjson",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "sha2",
@@ -5451,9 +5451,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.104"
+version = "1.0.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9695f8df41bb4f3d222c95a67532365f569318332d03d5f3f67f37b20e6ebdf0"
+checksum = "535d180e0ecab6268a3e718bb9fd44db66bbbc256257165fc699dadf70d16fe7"
 dependencies = [
  "unicode-ident",
 ]
@@ -5528,10 +5528,10 @@ dependencies = [
  "proto_pdk_api",
  "proto_shim",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "rustc-hash",
  "scc 3.4.8",
- "schematic",
+ "schematic 0.19.1",
  "semver",
  "serde",
  "serde_json",
@@ -5561,7 +5561,7 @@ checksum = "401b3e6a59f26cbdebef4e8f7967e342bf0e442735d7b6e6120f4940dd793d45"
 dependencies = [
  "derive_setters",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.1",
  "semver",
  "serde",
  "serde_json",
@@ -5685,9 +5685,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.42"
+version = "1.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a338cc41d27e6cc6dce6cefc13a0729dfbb81c262b1f519331575dd80ef3067f"
+checksum = "dc74d9a594b72ae6656596548f56f667211f8a97b3d4c3d467150794690dc40a"
 dependencies = [
  "proc-macro2",
 ]
@@ -5890,7 +5890,6 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "encoding_rs",
- "futures-channel",
  "futures-core",
  "futures-util",
  "h2",
@@ -5932,6 +5931,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "reqwest"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04e9018c9d814e5f30cc16a0f03271aeab3571e609612d9fe78c1aa8d11c2f62"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "futures-channel",
+ "futures-core",
+ "futures-util",
+ "http",
+ "http-body",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "js-sys",
+ "log",
+ "percent-encoding",
+ "pin-project-lite",
+ "sync_wrapper",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tower-service",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "reqwest-middleware"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5940,7 +5970,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "http",
- "reqwest",
+ "reqwest 0.12.28",
  "serde",
  "thiserror 1.0.69",
  "tower-service",
@@ -6017,6 +6047,18 @@ name = "rpkl"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488081796d482619a215d963ec19eab3d7222ac8968cd0ad812fff69d372f856"
+dependencies = [
+ "dunce",
+ "rmp-serde",
+ "rmpv",
+ "serde",
+]
+
+[[package]]
+name = "rpkl"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c58732d31abf3a100d8f2cf0bb30ae66e009b7ddeb01888cff0607b6a02aac4"
 dependencies = [
  "dunce",
  "rmp-serde",
@@ -6308,16 +6350,39 @@ dependencies = [
  "garde",
  "indexmap",
  "json-strip-comments",
+ "miette 7.6.0",
+ "regex",
+ "schematic_macros 0.19.0",
+ "schematic_types 0.11.0",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "starbase_styles",
+ "thiserror 2.0.17",
+ "toml 0.9.10+spec-1.1.0",
+ "tracing",
+]
+
+[[package]]
+name = "schematic"
+version = "0.19.2"
+source = "git+https://github.com/Adjective-Object/schematic.git?rev=e4beb084ad513f104d700236f8d29a9a549d0f1e#e4beb084ad513f104d700236f8d29a9a549d0f1e"
+dependencies = [
+ "garde",
+ "indexmap",
+ "json-strip-comments",
  "markdown",
  "miette 7.6.0",
  "regex",
- "reqwest",
- "rpkl",
+ "reqwest 0.13.1",
+ "rpkl 0.7.0",
  "schemars",
- "schematic_macros",
- "schematic_types",
+ "schematic_macros 0.19.1",
+ "schematic_types 0.11.1",
  "semver",
  "serde",
+ "serde-content",
  "serde_json",
  "serde_norway",
  "serde_path_to_error",
@@ -6341,6 +6406,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "schematic_macros"
+version = "0.19.1"
+source = "git+https://github.com/Adjective-Object/schematic.git?rev=e4beb084ad513f104d700236f8d29a9a549d0f1e#e4beb084ad513f104d700236f8d29a9a549d0f1e"
+dependencies = [
+ "convert_case 0.10.0",
+ "darling 0.23.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "schematic_types"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6348,13 +6425,26 @@ checksum = "1c818d205db50c9d56f12bb4ea264967ec01c129edca5bf8a3a848a5c6f9b58f"
 dependencies = [
  "indexmap",
  "regex",
- "rpkl",
+ "semver",
+ "serde",
+ "serde_json",
+ "toml 0.9.10+spec-1.1.0",
+ "url",
+]
+
+[[package]]
+name = "schematic_types"
+version = "0.11.1"
+source = "git+https://github.com/Adjective-Object/schematic.git?rev=e4beb084ad513f104d700236f8d29a9a549d0f1e#e4beb084ad513f104d700236f8d29a9a549d0f1e"
+dependencies = [
+ "indexmap",
+ "regex",
+ "rpkl 0.7.0",
  "semver",
  "serde",
  "serde_json",
  "serde_norway",
  "toml 0.9.10+spec-1.1.0",
- "url",
 ]
 
 [[package]]
@@ -6432,6 +6522,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-content"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3753ca04f350fa92d00b6146a3555e63c55388c9ef2e11e09bce2ff1c0b509c6"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde-untagged"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6465,9 +6564,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.148"
+version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3084b546a1dd6289475996f182a22aba973866ea8e8b02c51d9f46b1336a22da"
+checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
  "indexmap",
  "itoa",
@@ -6844,7 +6943,7 @@ dependencies = [
  "compact_str 0.9.0",
  "miette 7.6.0",
  "regex",
- "schematic",
+ "schematic 0.19.1",
  "serde",
  "thiserror 2.0.17",
 ]
@@ -6903,7 +7002,7 @@ dependencies = [
  "jwalk",
  "miette 7.6.0",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "scc 3.4.8",
  "serde",
  "serde_json",
@@ -6981,9 +7080,9 @@ checksum = "b7401a30af6cb5818bb64852270bb722533397edcfc7344954a38f420819ece2"
 
 [[package]]
 name = "syn"
-version = "2.0.112"
+version = "2.0.114"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21f182278bf2d2bcb3c88b1b08a37df029d71ce3d3ae26168e3c653b213b99d4"
+checksum = "d4d107df263a3013ef9b1879b0df87d706ff80f65a86ea879bd9c31f9b307c2a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7068,7 +7167,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a262b8503e8f2c7bc28beabda95a85ea4a5e6580da4c0443618a4a1d0c8c504e"
 dependencies = [
  "regex",
- "schematic",
+ "schematic 0.19.1",
  "serde",
  "serde_json",
  "shell-words",
@@ -7862,7 +7961,7 @@ dependencies = [
  "compact_str 0.9.0",
  "human-sort",
  "regex",
- "schematic",
+ "schematic 0.19.1",
  "semver",
  "serde",
  "thiserror 2.0.17",
@@ -7911,11 +8010,11 @@ dependencies = [
  "oci-client",
  "once_cell",
  "regex",
- "reqwest",
+ "reqwest 0.12.28",
  "reqwest-middleware",
  "reqwest-netrc",
  "scc 3.4.8",
- "schematic",
+ "schematic 0.19.1",
  "serde",
  "serde_json",
  "sha2",
@@ -7940,7 +8039,7 @@ dependencies = [
  "anyhow",
  "derive_setters",
  "rustc-hash",
- "schematic",
+ "schematic 0.19.1",
  "serde",
  "serde_json",
  "starbase_id",
