@@ -94,6 +94,11 @@ pub struct WorkspaceBuilder<'app> {
 
     /// The task DAG.
     task_graph: Dag<NodeState<Task>, TaskDependencyType>,
+
+    /// Precomputed transitive dependencies for each project.
+    /// This is computed lazily when a task with ^^ scope is encountered.
+    #[serde(skip)]
+    transitive_deps_cache: Option<FxHashMap<Id, Vec<Id>>>,
 }
 
 impl<'app> WorkspaceBuilder<'app> {
@@ -115,6 +120,7 @@ impl<'app> WorkspaceBuilder<'app> {
             root_project_id: None,
             task_data: FxHashMap::default(),
             task_graph: Dag::new(),
+            transitive_deps_cache: None,
         };
 
         graph.preload_build_data().await?;
@@ -474,6 +480,11 @@ impl<'app> WorkspaceBuilder<'app> {
 
     /// Load all tasks into the graph, derived from the loaded projects.
     pub async fn load_tasks(&mut self) -> miette::Result<()> {
+        // Precompute transitive dependencies for all projects before loading tasks.
+        // This is an optimization for tasks with ^^ scope that would otherwise
+        // recompute the transitive closure for each task.
+        self.transitive_deps_cache = Some(compute_transitive_deps(&self.project_data));
+
         let mut targets = vec![];
 
         for node in self.project_graph.raw_nodes() {
@@ -544,11 +555,12 @@ impl<'app> WorkspaceBuilder<'app> {
 
         // Resolve the task dependencies so we can link edges correctly
         TaskDepsBuilder {
-            querent: Box::new(WorkspaceBuilderTasksQuerent {
+            querent: WorkspaceBuilderTasksQuerent {
                 project_data: &self.project_data,
                 projects_by_tag: &self.projects_by_tag,
                 task_data: &self.task_data,
-            }),
+                transitive_deps: self.transitive_deps_cache.as_ref(),
+            },
             project: Some(project),
             root_project_id: self.root_project_id.as_ref(),
             task: &mut task,

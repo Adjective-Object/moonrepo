@@ -13,8 +13,12 @@ struct TestQuerent {
 }
 
 impl TasksQuerent for TestQuerent {
-    fn query_projects_by_tag(&self, _tag: &str) -> miette::Result<Vec<&Id>> {
-        Ok(self.tag_ids.iter().collect())
+    // Test querent computes transitive deps on-the-fly,
+    // so we use a Vec iterator as the associated type
+    type IdsCollection<'a> = std::vec::IntoIter<&'a Id>;
+
+    fn query_projects_by_tag(&self, _tag: &str) -> miette::Result<std::vec::IntoIter<&Id>> {
+        Ok(self.tag_ids.iter().collect::<Vec<_>>().into_iter())
     }
 
     fn query_tasks(
@@ -37,11 +41,36 @@ impl TasksQuerent for TestQuerent {
             .collect::<Vec<_>>())
     }
 
-    fn query_dependent_projects_by_id(&self, project_id: &Id) -> miette::Result<Vec<&Id>> {
-        self.dependencies
+    fn query_transitive_deps(&self, project_id: &Id) -> miette::Result<std::vec::IntoIter<&Id>> {
+        // Compute transitive deps on-the-fly for tests
+        let mut transitive_dep_ids: Vec<&Id> = vec![];
+        let mut visited_set = rustc_hash::FxHashSet::default();
+        visited_set.insert(project_id);
+
+        // Get direct dependencies as the initial frontier
+        let mut frontier: Vec<&Id> = self
+            .dependencies
             .get(project_id)
             .map(|ids| ids.iter().collect())
-            .ok_or_else(|| miette::miette!("Project with id={} could not be queried.", project_id))
+            .unwrap_or_default();
+
+        while let Some(dep_id) = frontier.pop() {
+            if !visited_set.insert(dep_id) {
+                continue;
+            }
+            transitive_dep_ids.push(dep_id);
+
+            // Add this dependency's dependencies to the frontier
+            if let Some(dep_deps) = self.dependencies.get(dep_id) {
+                for d in dep_deps {
+                    if !visited_set.contains(d) {
+                        frontier.push(d);
+                    }
+                }
+            }
+        }
+
+        Ok(transitive_dep_ids.into_iter())
     }
 }
 
@@ -76,7 +105,7 @@ fn build_task_deps_with_data(
             data,
             tag_ids: vec![],
             dependencies: FxHashMap::from_iter([(
-                project.id,
+                project.id.clone(),
                 project
                     .dependencies
                     .iter()
@@ -89,7 +118,7 @@ fn build_task_deps_with_data(
 
 fn build_task_deps_with_querent(project: &mut Project, task: &mut Task, querent: TestQuerent) {
     TaskDepsBuilder {
-        querent: Box::new(querent),
+        querent,
         project: Some(project),
         root_project_id: None,
         task,
@@ -374,7 +403,7 @@ mod task_deps_builder {
                 .push(TaskDependencyConfig::new(Target::parse("^:build").unwrap()));
 
             TaskDepsBuilder {
-                querent: Box::new(TestQuerent {
+                querent: TestQuerent {
                     data: FxHashMap::from_iter([
                         (Target::parse("foo:build").unwrap(), TaskOptions::default()),
                         (Target::parse("bar:test").unwrap(), TaskOptions::default()),
@@ -384,10 +413,10 @@ mod task_deps_builder {
                     ]),
                     tag_ids: vec![],
                     dependencies: FxHashMap::from_iter([(
-                        project.id,
+                        project.id.clone(),
                         vec![Id::raw("foo"), Id::raw("bar"), Id::raw("baz")],
                     )]),
-                }),
+                },
                 project: Some(&mut project),
                 root_project_id: None,
                 task: &mut task,
@@ -453,7 +482,7 @@ mod task_deps_builder {
             ));
 
             TaskDepsBuilder {
-                querent: Box::new(TestQuerent {
+                querent: TestQuerent {
                     data: FxHashMap::from_iter([
                         (Target::parse("foo:build").unwrap(), TaskOptions::default()),
                         (Target::parse("bar:build").unwrap(), TaskOptions::default()),
@@ -465,24 +494,21 @@ mod task_deps_builder {
                     dependencies: FxHashMap::from_iter(vec![
                         // project -> foo
                         // project -> bar
-                        (project.id, vec![Id::raw("foo"), Id::raw("bar")]),
+                        (project.id.clone(), vec![Id::raw("foo"), Id::raw("bar")]),
                         // bar -> baz
                         (Id::raw("bar"), vec![Id::raw("baz")]),
+                        // baz has no dependencies
+                        (Id::raw("baz"), vec![]),
+                        // foo has no dependencies
+                        (Id::raw("foo"), vec![]),
                     ]),
-                }),
+                },
                 project: Some(&mut project),
                 root_project_id: None,
                 task: &mut task,
             }
             .build()
             .unwrap();
-
-            assert_eq!(
-                task.deps,
-                vec![TaskDependencyConfig::new(
-                    Target::parse("foo:build").unwrap()
-                )]
-            );
 
             assert_eq!(
                 task.deps,
