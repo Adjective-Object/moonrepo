@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../schematic"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../proto"
+		},
+		{
+			"path": "../starbase"
+		},
+		{
+			"path": "../netrc"
+		},
+		{
+			"path": "../http-cache"
+		}
+	],
+	"settings": {}
+}
