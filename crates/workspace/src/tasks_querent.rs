@@ -79,10 +79,10 @@ pub fn compute_transitive_deps(
 
 pub struct WorkspaceBuilderTasksQuerent<'builder> {
     pub project_data: &'builder FxHashMap<Id, ProjectBuildData>,
-    pub all_project_ids: &'builder Option<Vec<Id>>,
+    pub all_project_ids: Option<&'builder Vec<Id>>,
     pub projects_by_tag: &'builder FxHashMap<Id, Vec<Id>>,
     pub task_data: &'builder FxHashMap<Target, TaskBuildData>,
-    pub transitive_deps: &'builder Option<FxHashMap<Id, Vec<Id>>>,
+    pub transitive_deps: Option<&'builder FxHashMap<Id, Vec<Id>>>,
 }
 
 impl<'builder> TasksQuerent for WorkspaceBuilderTasksQuerent<'builder> {

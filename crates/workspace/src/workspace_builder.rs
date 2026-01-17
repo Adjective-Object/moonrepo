@@ -569,10 +569,10 @@ impl<'app> WorkspaceBuilder<'app> {
         TaskDepsBuilder {
             querent: WorkspaceBuilderTasksQuerent {
                 project_data: &self.project_data,
-                all_project_ids: &self.all_project_ids_cache,
+                all_project_ids: self.all_project_ids_cache.as_ref(),
                 projects_by_tag: &self.projects_by_tag,
                 task_data: &self.task_data,
-                transitive_deps: &self.transitive_deps_cache,
+                transitive_deps: self.transitive_deps_cache.as_ref(),
             },
             project: Some(project),
             root_project_id: self.root_project_id.as_ref(),
