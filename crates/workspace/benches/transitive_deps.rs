@@ -6,14 +6,14 @@ use moon_task_builder::TasksQuerent;
 use moon_workspace::{
     ProjectBuildData, TaskBuildData, WorkspaceBuilderTasksQuerent, compute_transitive_deps,
 };
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 /// Synthetic data generator for benchmarks.
 /// Creates a linear chain of project dependencies: p0 <- p1 <- p2 <- ... <- pN
 /// and a few high-connectivity "hub" projects that many packages depend on.
 struct SyntheticWorkspace {
     project_data: FxHashMap<Id, ProjectBuildData>,
-    all_project_ids: Vec<Id>,
+    all_project_ids: Option<Vec<Id>>,
     projects_by_tag: FxHashMap<Id, Vec<Id>>,
     task_data: FxHashMap<Target, TaskBuildData>,
 }
@@ -94,21 +94,10 @@ impl SyntheticWorkspace {
         }
 
         Self {
-            all_project_ids: project_data.keys().cloned().collect(),
+            all_project_ids: Some(project_data.keys().cloned().collect()),
             project_data,
             projects_by_tag,
             task_data,
-        }
-    }
-
-    /// Create a querent WITHOUT precomputed transitive deps (old approach)
-    fn create_querent_without_cache(&self) -> WorkspaceBuilderTasksQuerent<'_> {
-        WorkspaceBuilderTasksQuerent {
-            project_data: &self.project_data,
-            all_project_ids: &self.all_project_ids,
-            projects_by_tag: &self.projects_by_tag,
-            task_data: &self.task_data,
-            transitive_deps: None,
         }
     }
 
@@ -119,7 +108,7 @@ impl SyntheticWorkspace {
     ) -> WorkspaceBuilderTasksQuerent<'a> {
         WorkspaceBuilderTasksQuerent {
             project_data: &self.project_data,
-            all_project_ids: &self.all_project_ids,
+            all_project_ids: self.all_project_ids.as_ref(),
             projects_by_tag: &self.projects_by_tag,
             task_data: &self.task_data,
             transitive_deps: Some(cache),
