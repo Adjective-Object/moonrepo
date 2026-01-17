@@ -40,9 +40,16 @@ config = "0.15.19"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+moon_action_graph = { path = "../action-graph" }
+moon_test_utils2 = { path = "../test-utils" }
+tokio = { workspace = true }
 
 [[bench]]
 name = "transitive_deps"
+harness = false
+
+[[bench]]
+name = "task_schedule"
 harness = false
 
 [lints]
