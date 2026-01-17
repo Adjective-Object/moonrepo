@@ -22,7 +22,7 @@ use moon_project::{Project, ProjectAlias, ProjectError};
 use moon_project_builder::{ProjectBuilder, ProjectBuilderContext};
 use moon_project_constraints::{enforce_layer_relationships, enforce_tag_relationships};
 use moon_project_graph::{ProjectGraph, ProjectGraphError, ProjectMetadata};
-use moon_task::{Target, Task};
+use moon_task::{Target, TargetScope, Task};
 use moon_task_builder::TaskDepsBuilder;
 use moon_task_graph::{GraphExpanderContext, NodeState, TaskGraph, TaskGraphError, TaskMetadata};
 use moon_toolchain_plugin::ToolchainRegistry;
@@ -99,6 +99,10 @@ pub struct WorkspaceBuilder<'app> {
     /// This is computed lazily when a task with ^^ scope is encountered.
     #[serde(skip)]
     transitive_deps_cache: Option<FxHashMap<Id, Vec<Id>>>,
+
+    /// All project IDs in the workspace, precomputed for efficient iteration.
+    #[serde(skip)]
+    all_project_ids_cache: Option<Vec<Id>>,
 }
 
 impl<'app> WorkspaceBuilder<'app> {
@@ -121,6 +125,7 @@ impl<'app> WorkspaceBuilder<'app> {
             task_data: FxHashMap::default(),
             task_graph: Dag::new(),
             transitive_deps_cache: None,
+            all_project_ids_cache: None,
         };
 
         graph.preload_build_data().await?;
@@ -496,6 +501,13 @@ impl<'app> WorkspaceBuilder<'app> {
         }
 
         for target in targets {
+            if self.transitive_deps_cache.is_none() && target.scope == TargetScope::TransitiveDeps {
+                self.transitive_deps_cache = Some(compute_transitive_deps(&self.project_data));
+            }
+            if self.all_project_ids_cache.is_none() && target.scope == TargetScope::All {
+                self.transitive_deps_cache = Some(compute_transitive_deps(&self.project_data));
+            }
+
             self.load_task(&target).await?;
         }
 
@@ -557,9 +569,10 @@ impl<'app> WorkspaceBuilder<'app> {
         TaskDepsBuilder {
             querent: WorkspaceBuilderTasksQuerent {
                 project_data: &self.project_data,
+                all_project_ids: &self.all_project_ids_cache,
                 projects_by_tag: &self.projects_by_tag,
                 task_data: &self.task_data,
-                transitive_deps: self.transitive_deps_cache.as_ref(),
+                transitive_deps: &self.transitive_deps_cache,
             },
             project: Some(project),
             root_project_id: self.root_project_id.as_ref(),

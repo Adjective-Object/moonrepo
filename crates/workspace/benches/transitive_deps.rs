@@ -13,6 +13,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 /// and a few high-connectivity "hub" projects that many packages depend on.
 struct SyntheticWorkspace {
     project_data: FxHashMap<Id, ProjectBuildData>,
+    all_project_ids: Vec<Id>,
     projects_by_tag: FxHashMap<Id, Vec<Id>>,
     task_data: FxHashMap<Target, TaskBuildData>,
 }
@@ -93,6 +94,7 @@ impl SyntheticWorkspace {
         }
 
         Self {
+            all_project_ids: project_data.keys().cloned().collect(),
             project_data,
             projects_by_tag,
             task_data,
@@ -103,6 +105,7 @@ impl SyntheticWorkspace {
     fn create_querent_without_cache(&self) -> WorkspaceBuilderTasksQuerent<'_> {
         WorkspaceBuilderTasksQuerent {
             project_data: &self.project_data,
+            all_project_ids: &self.all_project_ids,
             projects_by_tag: &self.projects_by_tag,
             task_data: &self.task_data,
             transitive_deps: None,
@@ -116,6 +119,7 @@ impl SyntheticWorkspace {
     ) -> WorkspaceBuilderTasksQuerent<'a> {
         WorkspaceBuilderTasksQuerent {
             project_data: &self.project_data,
+            all_project_ids: &self.all_project_ids,
             projects_by_tag: &self.projects_by_tag,
             task_data: &self.task_data,
             transitive_deps: Some(cache),

@@ -15,6 +15,9 @@ pub trait TasksQuerent {
     where
         Self: 'a;
 
+    /// Returns all project IDs in the workspace.
+    fn query_all(&self) -> miette::Result<Self::IdsCollection<'_>>;
+
     fn query_projects_by_tag(&self, tag: &str) -> miette::Result<Self::IdsCollection<'_>>;
     fn query_tasks(
         &self,

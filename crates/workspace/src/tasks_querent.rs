@@ -79,9 +79,10 @@ pub fn compute_transitive_deps(
 
 pub struct WorkspaceBuilderTasksQuerent<'builder> {
     pub project_data: &'builder FxHashMap<Id, ProjectBuildData>,
+    pub all_project_ids: &'builder Option<Vec<Id>>,
     pub projects_by_tag: &'builder FxHashMap<Id, Vec<Id>>,
     pub task_data: &'builder FxHashMap<Target, TaskBuildData>,
-    pub transitive_deps: Option<&'builder FxHashMap<Id, Vec<Id>>>,
+    pub transitive_deps: &'builder Option<FxHashMap<Id, Vec<Id>>>,
 }
 
 impl<'builder> TasksQuerent for WorkspaceBuilderTasksQuerent<'builder> {
@@ -136,5 +137,12 @@ impl<'builder> TasksQuerent for WorkspaceBuilderTasksQuerent<'builder> {
                     project_id
                 )
             })
+    }
+
+    fn query_all(&self) -> miette::Result<std::slice::Iter<'_, Id>> {
+        self.all_project_ids
+            .as_ref()
+            .map(|ids| ids.iter())
+            .ok_or_else(|| miette::miette!("List of all dependencies was not precomputed",))
     }
 }

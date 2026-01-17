@@ -17,6 +17,10 @@ impl TasksQuerent for TestQuerent {
     // so we use a Vec iterator as the associated type
     type IdsCollection<'a> = std::vec::IntoIter<&'a Id>;
 
+    fn query_all(&self) -> miette::Result<std::vec::IntoIter<&Id>> {
+        Ok(self.dependencies.keys().collect::<Vec<_>>().into_iter())
+    }
+
     fn query_projects_by_tag(&self, _tag: &str) -> miette::Result<std::vec::IntoIter<&Id>> {
         Ok(self.tag_ids.iter().collect::<Vec<_>>().into_iter())
     }
